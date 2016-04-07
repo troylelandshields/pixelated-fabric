@@ -32,11 +32,13 @@
     this.setHeight(newHeight);
     this.setWidth(newWidth);
 
+    var pixels = {};
     //Build and plot each pixel
     for (var i = 0; i < pixelDimensions.widthInPixels; i++) {
       for (var j = 0; j < pixelDimensions.heightInPixels; j++) {
         var left = i * pixelHeightAndWidth;
         var top = j * pixelHeightAndWidth;
+
         var pxl = new fabric.Rect({
           left: left,
           top: top,
@@ -47,13 +49,32 @@
           selectable: false
         });
 
+        pixels[i + "," + j] = pxl;
         this.add(pxl);
       }
     }
 
+    var paint = function(brushLeft, brushTop, brushSize, brushColor) {
+      //get top-left pixel
+      var topX = brushLeft / pixelHeightAndWidth;
+      var leftY = brushTop / pixelHeightAndWidth;
+      console.log(topX, leftY);
+
+      for (var i = topX; i < (topX + brushSize); i++) {
+        for (var j = leftY; j < (leftY + brushSize); j++) {
+          var pxl = pixels[i + "," + j];
+          if (pxl) {
+            pxl.setColor(brushColor);
+          }
+        }
+      }
+    }
+
     var brushCursor;
+    var dragging = false;
     this.on('mouse:move', function(e) {
       if (this.isPixelDrawingMode) {
+        //Create brush cursor if it doesn't exist
         if (!brushCursor) {
           brushCursor = new fabric.Rect({
             left: left,
@@ -63,17 +84,32 @@
             height: pixelHeightAndWidth * this.pixelDrawingBrush.size,
             selectable: false
           });
-          
           this.add(brushCursor);
         }
-        
-        
-        var offset = pixelHeightAndWidth * (this.pixelDrawingBrush.size/2);
-        brushCursor.setTop(e.target.top - offset);
-        brushCursor.setLeft(e.target.left - offset);
+
+        //Move brush cursor
+        var offset = pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
+        var leftMostPoint = e.target.left - offset;
+        var topMostPoint = e.target.top - offset;
+        brushCursor.setTop(topMostPoint);
+        brushCursor.setLeft(leftMostPoint);
+
+        //If user is clicked down, color pixels
+        if (dragging) {
+          paint(leftMostPoint, topMostPoint, this.pixelDrawingBrush.size, this.pixelDrawingBrush.color);
+        }
+
         this.renderAll();
       }
     });
+
+    this.on('mouse:down', function(e) {
+      dragging = true;
+      paint(brushCursor.getLeft(), brushCursor.getTop(), this.pixelDrawingBrush.size, this.pixelDrawingBrush.color);
+    });
+    this.on('mouse:up', function(e) {
+      dragging = false;
+    })
 
     this.pixelDrawingBrush = new pixelatedFabric.PixelDrawingBrush({});
   };

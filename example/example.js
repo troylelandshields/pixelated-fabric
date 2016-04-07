@@ -14,7 +14,7 @@
   
   canvas.pixelDrawingBrush = new pixelatedFabric.PixelDrawingBrush({
     color: "red",
-    size: 10
+    size: 3
   });
   
   canvas.setIsPixelDrawingMode(true);
