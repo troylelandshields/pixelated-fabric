@@ -11,24 +11,29 @@
     .top-buffer {
       margin-top: 30px;
     }
+        
+    .bottom-buffer {
+      margin-top: 100px;
+    }
+    
   </style>
 </head>
 
 <body class="container top-buffer">
-  <div class="panel panel-default">
-    <div class="panel-body">
-      <div class="row">
-        <label class="col-md-6" for="pixel-width">Number of Pixels Wide</label>
-        <input id="pixel-width" type="number" value="50"></input>
-      </div>
-      <div class="row">
-        <label class="col-md-6" for="pixel-height">Number of Pixels High</label>
-        <input id="pixel-height" type="number" value="32"></input>
-      </div>
-      <div>
-        <canvas id="example-canvas"></canvas>
-      </div>
-      <div class="panel panel-default  top-buffer">
+  <div class="row">
+    <label class="col-md-6" for="pixel-width">Number of Pixels Wide</label>
+    <input id="pixel-width" type="number" value="50"></input>
+  </div>
+  <div class="row">
+    <label class="col-md-6" for="pixel-height">Number of Pixels High</label>
+    <input id="pixel-height" type="number" value="32"></input>
+  </div>
+  <div>
+    <canvas id="example-canvas"></canvas>
+  </div>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="panel panel-default top-buffer">
         <div class="panel-heading">Drawing Control</div>
         <div class="panel-body">
           <div class="container">
@@ -41,12 +46,24 @@
               <input id="brush-color-input" type="color"></input>
             </div>
             <div class="row top-buffer">
-              <input id="save" type="button" class="btn btn-primary" value="Save Image"></input>
+              <input id="saveBtn" type="button" class="btn btn-primary" value="Save Image"></input>
             </div>
           </div>
         </div>
       </div>
+
     </div>
+    <div class="col-md-8">
+      <div class="row">
+        <h4>Fully Minimized</h4>
+        <img id="small-display">
+      </div>
+      <div class="row">
+        <h4>Max size</h4>
+        <img id="full-display">
+      </div>
+    </div>
+    <div class="bottom-buffer"></div>
   </div>
 </body>
 

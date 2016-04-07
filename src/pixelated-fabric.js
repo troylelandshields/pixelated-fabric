@@ -156,7 +156,7 @@
             x = i;
             y = j;
           }
-          
+
           var pxl = theCanvas.pixels[x + "," + y];
           theCanvas.pixels[x + "," + y] = undefined;
 
@@ -195,6 +195,19 @@
   fabric.Canvas.prototype.setIsPixelDrawingMode = function(turnOn) {
     this.isPixelDrawingMode = turnOn;
   };
+
+  fabric.Canvas.prototype.setPixelOptions = function(options) {
+    for (var pxlName in this.pixels) {
+      if (this.pixels.hasOwnProperty(pxlName) && this.pixels[pxlName]) {
+        //Set any other options we want to support
+        this.pixels[pxlName].setStroke(options.stroke);
+      }
+    }
+  };
+  
+  fabric.Canvas.prototype.getActualPixelSize = function() {
+    return this.pixelHeightAndWidth;
+  }
 
   //Pixel Drawing Brush definition
   function PixelDrawingBrush(options) {
