@@ -1,15 +1,53 @@
 <html>
 
 <head>
+  <link rel="stylesheet" href="..\bower_components\bootstrap\dist\css\bootstrap.css">
+
   <style>
     canvas {
       border: solid 1px black;
     }
+    
+    .top-buffer {
+      margin-top: 30px;
+    }
   </style>
 </head>
 
-<body>
-  <canvas id="example-canvas"></canvas>
+<body class="container top-buffer">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="row">
+        <label class="col-md-6" for="pixel-width">Number of Pixels Wide</label>
+        <input id="pixel-width" type="number" value="50"></input>
+      </div>
+      <div class="row">
+        <label class="col-md-6" for="pixel-height">Number of Pixels High</label>
+        <input id="pixel-height" type="number" value="32"></input>
+      </div>
+      <div>
+        <canvas id="example-canvas"></canvas>
+      </div>
+      <div class="panel panel-default  top-buffer">
+        <div class="panel-heading">Drawing Control</div>
+        <div class="panel-body">
+          <div class="container">
+            <div class="row">
+              <label class="col-md-6" for="brush-size-input">Brush Size Input</label>
+              <input id="brush-size-input" type="number" value="1"></input>
+            </div>
+            <div class="row">
+              <label class="col-md-6" for="brush-color-input">Brush Color</label>
+              <input id="brush-color-input" type="color"></input>
+            </div>
+            <div class="row top-buffer">
+              <input id="save" type="button" class="btn btn-primary" value="Save Image"></input>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 <script src="..\bower_components\fabric.js\dist\fabric.js"></script>

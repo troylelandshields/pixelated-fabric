@@ -3,6 +3,7 @@
 
 
 (function() {
+  var theCanvas;
   var pixelatedFabric = pixelatedFabric || { version: "1.0" };
 
   //Set it on the window
@@ -12,57 +13,69 @@
     return Math.floor(totalLength / numPixels);
   }
 
-  fabric.Canvas.prototype.pixelate = function(pixelDimensions) {
+  var addNewPixel = function(x, y) {
+    var left = x * theCanvas.pixelHeightAndWidth;
+    var top = y * theCanvas.pixelHeightAndWidth;
+
+    var pxl = new fabric.Rect({
+      left: left,
+      top: top,
+      fill: "rgba(0, 0, 0, 0)",
+      stroke: theCanvas.options.stroke,
+      width: theCanvas.pixelHeightAndWidth,
+      height: theCanvas.pixelHeightAndWidth,
+      selectable: false
+    });
+
+    theCanvas.pixels[x + "," + y] = pxl;
+    theCanvas.add(pxl);
+  }
+
+  fabric.Canvas.prototype.pixelate = function(pixelDimensions, options) {
+    theCanvas = this;
     this.renderOnAddRemove = false;
 
-    var pixelHeightAndWidth;
+    var pixelDimensions = {
+      widthInPixels: parseInt(pixelDimensions.widthInPixels),
+      heightInPixels: parseInt(pixelDimensions.heightInPixels)
+    };
+    this.heightInPixels = pixelDimensions.heightInPixels;
+    this.widthInPixels = pixelDimensions.widthInPixels;
+
+    this.options = options || { stroke: "gray" };
 
     //Figure height/width of each logical pixel in terms of on screen pixels
     if (this.getHeight() > this.getWidth()) {
-      pixelHeightAndWidth = getDimOfPixel(this.getWidth(), pixelDimensions.widthInPixels);
+      this.pixelHeightAndWidth = getDimOfPixel(this.getWidth(), pixelDimensions.widthInPixels);
     }
     else {
-      pixelHeightAndWidth = getDimOfPixel(this.getHeight(), pixelDimensions.heightInPixels);
+      this.pixelHeightAndWidth = getDimOfPixel(this.getHeight(), pixelDimensions.heightInPixels);
     }
 
     //Change height/width of canvas
-    var newHeight = pixelHeightAndWidth * pixelDimensions.heightInPixels;
-    var newWidth = pixelHeightAndWidth * pixelDimensions.widthInPixels;
+    var newHeight = this.pixelHeightAndWidth * pixelDimensions.heightInPixels;
+    var newWidth = this.pixelHeightAndWidth * pixelDimensions.widthInPixels;
 
     this.setHeight(newHeight);
     this.setWidth(newWidth);
 
-    var pixels = {};
+    this.pixels = {};
     //Build and plot each pixel
     for (var i = 0; i < pixelDimensions.widthInPixels; i++) {
       for (var j = 0; j < pixelDimensions.heightInPixels; j++) {
-        var left = i * pixelHeightAndWidth;
-        var top = j * pixelHeightAndWidth;
-
-        var pxl = new fabric.Rect({
-          left: left,
-          top: top,
-          fill: "rgba(0, 0, 0, 0)",
-          stroke: "black",
-          width: pixelHeightAndWidth,
-          height: pixelHeightAndWidth,
-          selectable: false
-        });
-
-        pixels[i + "," + j] = pxl;
-        this.add(pxl);
+        addNewPixel(i, j);
       }
     }
 
     var paint = function(brushLeft, brushTop, brushSize, brushColor) {
       //get top-left pixel
-      var topX = brushLeft / pixelHeightAndWidth;
-      var leftY = brushTop / pixelHeightAndWidth;
+      var topX = brushLeft / theCanvas.pixelHeightAndWidth;
+      var leftY = brushTop / theCanvas.pixelHeightAndWidth;
       console.log(topX, leftY);
 
       for (var i = topX; i < (topX + brushSize); i++) {
         for (var j = leftY; j < (leftY + brushSize); j++) {
-          var pxl = pixels[i + "," + j];
+          var pxl = theCanvas.pixels[i + "," + j];
           if (pxl) {
             pxl.setColor(brushColor);
           }
@@ -75,20 +88,20 @@
     this.on('mouse:move', function(e) {
       if (this.isPixelDrawingMode) {
         //Create brush cursor if it doesn't exist
-        if (!brushCursor) {
-          brushCursor = new fabric.Rect({
-            left: left,
-            top: top,
-            fill: this.pixelDrawingBrush.color,
-            width: pixelHeightAndWidth * this.pixelDrawingBrush.size,
-            height: pixelHeightAndWidth * this.pixelDrawingBrush.size,
-            selectable: false
-          });
-          this.add(brushCursor);
+        if (brushCursor) {
+          this.remove(brushCursor);
         }
 
+        brushCursor = new fabric.Rect({
+          fill: this.pixelDrawingBrush.color,
+          width: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
+          height: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
+          selectable: false
+        });
+        this.add(brushCursor);
+
         //Move brush cursor
-        var offset = pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
+        var offset = this.pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
         var leftMostPoint = e.target.left - offset;
         var topMostPoint = e.target.top - offset;
         brushCursor.setTop(topMostPoint);
@@ -111,7 +124,72 @@
       dragging = false;
     })
 
-    this.pixelDrawingBrush = new pixelatedFabric.PixelDrawingBrush({});
+  };
+
+  var changeDimension = function(oldDim, newDim, otherDim, isWidth) {
+    var diff = newDim - oldDim;
+
+    if (diff > 0) {
+      //Add new row/col of pixels to bottom or right
+      for (var i = 0; i < otherDim; i++) {
+        for (var j = oldDim; j < newDim; j++) {
+          if (isWidth) {
+            var x = j;
+            var y = i;
+          }
+          else {
+            x = i;
+            y = j;
+          }
+          addNewPixel(x, y);
+        }
+      }
+    }
+    else if (diff < 0) {
+      for (var i = 0; i < otherDim; i++) {
+        for (var j = newDim; j < oldDim; j++) {
+          if (isWidth) {
+            x = j;
+            y = i;
+          }
+          else {
+            x = i;
+            y = j;
+          }
+          
+          var pxl = theCanvas.pixels[x + "," + y];
+          theCanvas.pixels[x + "," + y] = undefined;
+
+          if (pxl) {
+            theCanvas.remove(pxl);
+          }
+        }
+      }
+    }
+
+    return diff * theCanvas.pixelHeightAndWidth;
+  }
+
+  fabric.Canvas.prototype.setPixelHeight = function(newHeightInPixels) {
+    var oldHeightInPixels = this.heightInPixels;
+    newHeightInPixels = parseInt(newHeightInPixels);
+
+    var diffInCanvasSize = changeDimension(oldHeightInPixels, newHeightInPixels, this.widthInPixels);
+
+    this.setHeight(this.getHeight() + diffInCanvasSize);
+    this.heightInPixels = newHeightInPixels;
+    this.renderAll();
+  };
+
+  fabric.Canvas.prototype.setPixelWidth = function(newWidthInPixels) {
+    var oldWidthInPixels = this.widthInPixels;
+    newWidthInPixels = parseInt(newWidthInPixels);
+
+    var diffInCanvasSize = changeDimension(oldWidthInPixels, newWidthInPixels, this.heightInPixels, true);
+
+    this.setWidth(this.getWidth() + diffInCanvasSize);
+    this.widthInPixels = newWidthInPixels;
+    this.renderAll();
   };
 
   fabric.Canvas.prototype.setIsPixelDrawingMode = function(turnOn) {
@@ -121,7 +199,7 @@
   //Pixel Drawing Brush definition
   function PixelDrawingBrush(options) {
     this.color = options.color || "black";
-    this.size = options.size || 1;
+    this.size = parseInt(options.size) || 1;
   }
 
   PixelDrawingBrush.prototype.setColor = function(color) {
@@ -129,7 +207,7 @@
   };
 
   PixelDrawingBrush.prototype.setSize = function(size) {
-    this.size = size;
+    this.size = parseInt(size);
   };
 
   pixelatedFabric.PixelDrawingBrush = PixelDrawingBrush;
