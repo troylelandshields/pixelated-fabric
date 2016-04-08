@@ -1,6 +1,6 @@
 {
   "name": "pixelated-fabric",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Library that divides fabricjs canvas into a specified number of pixels to help make drawing pixel art easy. And fun!",
   "main": "",
   "keywords": [
