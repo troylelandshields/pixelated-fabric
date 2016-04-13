@@ -91,35 +91,46 @@
         if (brushCursor) {
           this.remove(brushCursor);
         }
+        
+        if (e.target) {
+          brushCursor = new fabric.Rect({
+            fill: this.pixelDrawingBrush.color,
+            width: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
+            height: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
+            selectable: false
+          });
+          this.add(brushCursor);
+          
+          var c = this;
+          e.e.target.onmouseleave = function() {
+            if(brushCursor) {
+              c.remove(brushCursor);
+              c.renderAll();
+            }
+          }
 
-        brushCursor = new fabric.Rect({
-          fill: this.pixelDrawingBrush.color,
-          width: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
-          height: this.pixelHeightAndWidth * this.pixelDrawingBrush.size,
-          selectable: false
-        });
-        this.add(brushCursor);
+          //Move brush cursor
+          var offset = this.pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
+          var leftMostPoint = e.target.left - offset;
+          var topMostPoint = e.target.top - offset;
+          brushCursor.setTop(topMostPoint);
+          brushCursor.setLeft(leftMostPoint);
 
-        //Move brush cursor
-        var offset = this.pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
-        var leftMostPoint = e.target.left - offset;
-        var topMostPoint = e.target.top - offset;
-        brushCursor.setTop(topMostPoint);
-        brushCursor.setLeft(leftMostPoint);
-
-        //If user is clicked down, color pixels
-        if (dragging) {
-          paint(leftMostPoint, topMostPoint, this.pixelDrawingBrush.size, this.pixelDrawingBrush.color);
+          //If user is clicked down, color pixels
+          if (dragging) {
+            paint(leftMostPoint, topMostPoint, this.pixelDrawingBrush.size, this.pixelDrawingBrush.color);
+          }
         }
-
-        this.renderAll();
       }
-    });
 
+      this.renderAll();
+    });
+    
     this.on('mouse:down', function(e) {
       dragging = true;
       paint(brushCursor.getLeft(), brushCursor.getTop(), this.pixelDrawingBrush.size, this.pixelDrawingBrush.color);
     });
+    
     this.on('mouse:up', function(e) {
       dragging = false;
     })
@@ -204,7 +215,7 @@
       }
     }
   };
-  
+
   fabric.Canvas.prototype.getActualPixelSize = function() {
     return this.pixelHeightAndWidth;
   }
