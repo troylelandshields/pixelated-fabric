@@ -20,5 +20,9 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "fabric.js": "fabric#^1.6.2",
+    "bootstrap": "^3.3.6"
+  }
 }
