@@ -110,9 +110,12 @@
           }
 
           //Move brush cursor
+
+          var pointer = c.getPointer(event.e);
           var offset = this.pixelHeightAndWidth * Math.floor(this.pixelDrawingBrush.size / 2);
-          var leftMostPoint = e.target.left - offset;
-          var topMostPoint = e.target.top - offset;
+          var leftMostPoint = ((Math.floor(pointer.x / c.pixelHeightAndWidth)) * c.pixelHeightAndWidth) - offset;
+          var topMostPoint = ((Math.floor(pointer.y / c.pixelHeightAndWidth)) * c.pixelHeightAndWidth) - offset;
+
           brushCursor.setTop(topMostPoint);
           brushCursor.setLeft(leftMostPoint);
 
